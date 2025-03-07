@@ -1,0 +1,58 @@
+{
+  "tasks": [
+    {
+      "id": "put-on-clothes",
+      "name": "Put on Clothes",
+      "description": "Time to get dressed!",
+      "startTime": "07:30",
+      "endTime": "08:30",
+      "period": "morning",
+      "spriteSheet": "/sprites/dress.png"
+    },
+    {
+      "id": "change-diaper-morning",
+      "name": "Change Diaper",
+      "description": "Let's change your diaper!",
+      "startTime": "07:45",
+      "endTime": "08:45",
+      "period": "morning",
+      "spriteSheet": "/sprites/diaper.png"
+    },
+    {
+      "id": "wash-hands",
+      "name": "Wash Hands",
+      "description": "Time to wash hands!",
+      "startTime": "15:00",
+      "endTime": "16:00",
+      "period": "evening",
+      "spriteSheet": "/sprites/wash.png"
+    },
+    {
+      "id": "eat-dinner",
+      "name": "Eat Dinner",
+      "description": "Dinner time!",
+      "startTime": "17:00",
+      "endTime": "18:00",
+      "period": "evening",
+      "spriteSheet": "/sprites/eat.png"
+    },
+    {
+      "id": "put-toys-back",
+      "name": "Put Toys Back",
+      "description": "Clean up time!",
+      "startTime": "18:30",
+      "endTime": "19:30",
+      "period": "evening",
+      "spriteSheet": "/sprites/cleanup.png"
+    },
+    {
+      "id": "change-diaper-evening",
+      "name": "Change Diaper",
+      "description": "Last diaper change!",
+      "startTime": "19:00",
+      "endTime": "20:00",
+      "period": "evening",
+      "spriteSheet": "/sprites/diaper.png"
+    }
+  ]
+} 
