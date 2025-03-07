@@ -1,11 +1,35 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material';
 import CssBaseline from '@mui/material/CssBaseline';
 import TaskPrompt from './components/TaskPrompt';
 import Roadmap from './components/Roadmap';
 import TouchControls from './components/common/TouchControls';
 import ProgressIndicator from './components/feedback/ProgressIndicator';
+import { TaskProvider } from './context/TaskContext';
+
+// Create a navigation wrapper component
+function NavigationWrapper() {
+  const navigate = useNavigate();
+
+  // Memoize the navigation function to prevent unnecessary re-renders
+  const handleNavigate = React.useCallback((path: string) => {
+    console.log('Navigating to:', path);
+    navigate(path);
+  }, [navigate]);
+
+  return (
+    <TaskProvider onNavigate={handleNavigate}>
+      <Routes>
+        <Route path="/prompt" element={<TaskPrompt />} />
+        <Route path="/roadmap" element={<Roadmap />} />
+        <Route path="/" element={<Navigate to="/prompt" replace />} />
+      </Routes>
+      <TouchControls />
+      <ProgressIndicator />
+    </TaskProvider>
+  );
+}
 
 const theme = createTheme({
   palette: {
@@ -26,14 +50,9 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<TaskPrompt />} />
-          <Route path="/roadmap" element={<Roadmap />} />
-        </Routes>
-        <TouchControls />
-        <ProgressIndicator />
-      </BrowserRouter>
+      <Router>
+        <NavigationWrapper />
+      </Router>
     </ThemeProvider>
   );
 }

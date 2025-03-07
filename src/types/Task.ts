@@ -4,7 +4,7 @@ export interface Task {
   description: string;
   startTime: string; // HH:mm format
   endTime: string; // HH:mm format
-  period: 'morning' | 'evening';
+  period: "morning" | "evening";
   spriteSheet: string; // path to sprite sheet
 }
 

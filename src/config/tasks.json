@@ -49,8 +49,8 @@
       "id": "change-diaper-evening",
       "name": "Change Diaper",
       "description": "Last diaper change!",
-      "startTime": "19:00",
-      "endTime": "20:00",
+      "startTime": "21:00",
+      "endTime": "23:59",
       "period": "evening",
       "spriteSheet": "/sprites/diaper.png"
     }
