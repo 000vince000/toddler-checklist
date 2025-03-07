@@ -29,7 +29,7 @@ export default function PixelAnimation({ spriteSheet, width = 300, height = 300 
     const material = new THREE.LineBasicMaterial({ color: 0x8B4513 });
     return new THREE.Line(geometry, material);
   };
-
+  
   useEffect(() => {
     if (!containerRef.current) return;
 

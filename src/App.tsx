@@ -5,7 +5,6 @@ import CssBaseline from '@mui/material/CssBaseline';
 import TaskPrompt from './components/TaskPrompt';
 import Roadmap from './components/Roadmap';
 import TouchControls from './components/common/TouchControls';
-import ProgressIndicator from './components/feedback/ProgressIndicator';
 import { TaskProvider } from './context/TaskContext';
 
 // Create a navigation wrapper component
@@ -26,7 +25,6 @@ function NavigationWrapper() {
         <Route path="/" element={<Navigate to="/prompt" replace />} />
       </Routes>
       <TouchControls />
-      <ProgressIndicator />
     </TaskProvider>
   );
 }
