@@ -4,10 +4,15 @@ import { createRoadmapCharacter } from './objects/RoadmapCharacter';
 import { createMarioBackground } from './objects/BackgroundElements';
 import { PathConnection } from './objects/PathConnection';
 import { Castle } from './objects/Castle';
+import { Bullseye } from './objects/Bullseye';
 
 interface Task {
   id: string;
   status: 'checked' | 'unchecked';
+}
+
+interface AnimatableCharacter extends THREE.Group {
+  animate: (time: number, walking: boolean, jumping: boolean) => void;
 }
 
 export class RoadmapScene {
@@ -18,71 +23,118 @@ export class RoadmapScene {
   private background: THREE.Group;
   private gameObjects: THREE.Group;
   private clock: THREE.Clock;
-  private character: THREE.Group;
+  private character: AnimatableCharacter;
   private tasks: Map<string, CoinBlock> = new Map();
   private taskPositions: Map<string, THREE.Vector3> = new Map();
   private raycaster: THREE.Raycaster;
   private mouse: THREE.Vector2;
   private paths: PathConnection[] = [];
   private castle: Castle | null = null;
+  private bullseye: Bullseye;
+  private startPosition: THREE.Vector3;
 
   constructor(container: HTMLElement) {
-    this.clock = new THREE.Clock();
-    
-    // Setup scene
-    this.scene = new THREE.Scene();
-    
-    // Setup orthographic camera for 2D view
-    const aspect = container.clientWidth / container.clientHeight;
-    this.camera = new THREE.OrthographicCamera(
-      -12 * aspect, 12 * aspect,
-      12, -12,
-      0.1, 1000
-    );
-    this.camera.position.set(0, 0, 10);
+    try {
+      console.log('RoadmapScene constructor starting:', {
+        containerWidth: container.clientWidth,
+        containerHeight: container.clientHeight
+      });
+      this.clock = new THREE.Clock();
+      
+      // Setup scene
+      this.scene = new THREE.Scene();
+      console.log('Scene created');
+      
+      // Setup orthographic camera for 2D view
+      const aspect = container.clientWidth / container.clientHeight;
+      this.camera = new THREE.OrthographicCamera(
+        -12 * aspect, 12 * aspect,
+        20, -20, // Increased vertical range
+        0.1, 1000
+      );
+      this.camera.position.set(0, 0, 10);
 
-    // Setup renderer with pixel art crisp edges
-    this.renderer = new THREE.WebGLRenderer({ 
-      antialias: false,
-      powerPreference: "high-performance"
-    });
-    this.renderer.setSize(container.clientWidth, container.clientHeight);
-    this.renderer.setPixelRatio(1); // For pixel art clarity
-    container.appendChild(this.renderer.domElement);
+      // Setup renderer with pixel art crisp edges
+      this.renderer = new THREE.WebGLRenderer({ 
+        antialias: false,
+        powerPreference: "high-performance"
+      });
+      this.renderer.setSize(container.clientWidth, container.clientHeight);
+      this.renderer.setPixelRatio(1); // For pixel art clarity
+      container.appendChild(this.renderer.domElement);
 
-    // Create layer groups with proper z-depth
-    this.clouds = new THREE.Group();
-    this.clouds.position.z = 5;
-    
-    this.background = new THREE.Group();
-    this.background.position.z = 0;
-    
-    this.gameObjects = new THREE.Group();
-    this.gameObjects.position.z = 2;
+      // Create layer groups with proper z-depth
+      this.clouds = new THREE.Group();
+      this.clouds.position.z = 5;
+      
+      this.background = new THREE.Group();
+      this.background.position.z = 0;
+      
+      this.gameObjects = new THREE.Group();
+      this.gameObjects.position.z = 2;
 
-    this.scene.add(this.clouds);
-    this.scene.add(this.background);
-    this.scene.add(this.gameObjects);
+      this.scene.add(this.clouds);
+      this.scene.add(this.background);
+      this.scene.add(this.gameObjects);
 
-    // Initialize scene
-    this.createSkyGradient();
-    this.createClouds();
-    this.createParallaxBackground();
+      // Initialize scene
+      this.createSkyGradient();
+      this.createClouds();
+      this.createParallaxBackground();
 
-    // Add background
-    const backgroundElement = createMarioBackground();
-    this.scene.add(backgroundElement);
+      // Add background
+      const backgroundElement = createMarioBackground();
+      this.scene.add(backgroundElement);
 
-    // Add character
-    this.character = createRoadmapCharacter();
-    this.scene.add(this.character);
+      // Add bullseye at bottom center
+      this.bullseye = new Bullseye();
+      const bullseyeMesh = this.bullseye.getMesh();
+      this.startPosition = new THREE.Vector3(0, -15, 0.1); // Bottom center
+      bullseyeMesh.position.copy(this.startPosition);
+      bullseyeMesh.scale.set(2, 2, 1);
+      this.scene.add(bullseyeMesh);
 
-    // Setup raycaster for click detection
-    this.raycaster = new THREE.Raycaster();
-    this.mouse = new THREE.Vector2();
+      // Add character at bullseye
+      this.character = createRoadmapCharacter() as AnimatableCharacter;
+      this.character.scale.set(4, 4, 1);
+      this.character.position.copy(this.startPosition);
+      this.character.position.y += 3;
+      this.character.position.z = 5;
+      this.scene.add(this.character);
 
-    // Start animation loop
-    this.animate();
+      // Setup raycaster for click detection
+      this.raycaster = new THREE.Raycaster();
+      this.mouse = new THREE.Vector2();
+
+      // Start animation loop
+      this.animate();
+
+      // After scene setup
+      console.log('Scene setup complete, dimensions:', {
+        width: container.clientWidth,
+        height: container.clientHeight,
+        cameraTop: this.camera.top,
+        cameraBottom: this.camera.bottom
+      });
+
+      // After background setup
+      console.log('Background layers:', this.background.children.map(child => ({
+        position: child.position,
+        scale: child.scale
+      })));
+
+      // After castle is added
+      if (this.castle) {
+        const castleWorldPos = this.castle.getMesh().getWorldPosition(new THREE.Vector3());
+        console.log('Castle world position after add:', castleWorldPos.toArray());
+        console.log('Castle local position:', this.castle.getMesh().position.toArray());
+      }
+
+      console.log('RoadmapScene constructor complete');
+    } catch (error) {
+      console.error('Error in RoadmapScene constructor:', error);
+      throw error;
+    }
   }
 
   private createSkyGradient() {
@@ -154,7 +206,6 @@ export class RoadmapScene {
   }
 
   private createParallaxBackground() {
-    // Create three layers of background elements
     const layers = [
       { z: -5, color: 0x87CEEB, scale: 0.8 }, // Far mountains
       { z: -3, color: 0x4CAF50, scale: 0.9 }, // Hills
@@ -162,12 +213,12 @@ export class RoadmapScene {
     ];
 
     layers.forEach(layer => {
-      const geometry = new THREE.PlaneGeometry(100, 20);
+      const geometry = new THREE.PlaneGeometry(100, 50); // Increased height
       const material = new THREE.MeshBasicMaterial({ color: layer.color });
       const mesh = new THREE.Mesh(geometry, material);
       
       mesh.position.z = layer.z;
-      mesh.position.y = -5;
+      mesh.position.y = -10; // Lowered ground position
       mesh.scale.set(layer.scale, layer.scale, 1);
       
       this.background.add(mesh);
@@ -175,18 +226,38 @@ export class RoadmapScene {
   }
 
   public addTask(task: Task, index: number, isActive: boolean) {
-    // Calculate task position using total number of tasks instead of current map size
-    const totalTasks = 6; // Since we know we have 6 tasks
-    const spacing = 3; // Increase spacing between blocks
+    const totalTasks = 6;
+    const verticalSpacing = 2;
+    const amplitude = 2;
     
-    // Calculate x position to spread tasks evenly
-    const x = -8 + (index * spacing);
-    // Create a gentle arc for the y positions
-    const y = -1 + Math.sin((index / (totalTasks - 1)) * Math.PI) * 2;
+    // Calculate positions in a vertical zigzag
+    const progress = index / (totalTasks - 1);
+    let x, y;
+    
+    if (index === totalTasks - 1) {
+      x = 0;
+      y = -2 + (index * verticalSpacing);
+
+      // Add castle at the top after last task
+      this.castle = new Castle();
+      const castleMesh = this.castle.getMesh();
+      const castlePosition = new THREE.Vector3(0, 45, 0.2);
+
+      // Only keep this one critical log
+      console.log('Castle position:', {
+        intended: castlePosition.toArray(),
+        actual: castleMesh.position.toArray()
+      });
+
+      castleMesh.position.copy(castlePosition);
+      this.scene.add(castleMesh);
+    } else {
+      x = Math.sin(progress * Math.PI * 2) * amplitude;
+      y = -12 + (index * verticalSpacing);
+    }
     
     const position = new THREE.Vector3(x, y, 0);
-
-    console.log(`Adding task ${task.id} at position:`, position);
+    console.log('Task position:', position.toArray());
 
     // Create coin block
     const block = new CoinBlock({
@@ -210,7 +281,21 @@ export class RoadmapScene {
     // If this is the active task, position character here
     if (isActive) {
       this.character.position.copy(position);
-      this.character.position.y += 1.5; // Adjust for bigger blocks
+      this.character.position.y += 3; // Adjusted for 4x bigger character
+      this.character.position.z = 5; // Ensure character stays in front
+    }
+
+    // If this is the first task, add path from bullseye
+    if (index === 0) {
+      const pathFromStart = new PathConnection(
+        this.startPosition,
+        position,
+        task.status === 'checked'
+      );
+      const pathMesh = pathFromStart.getMesh();
+      pathMesh.position.z = 0.1;
+      this.scene.add(pathMesh);
+      this.paths.push(pathFromStart);
     }
 
     // Add path connection to previous task
@@ -226,33 +311,7 @@ export class RoadmapScene {
       this.paths.push(path);
     }
 
-    // Add castle after last task
-    if (index === totalTasks - 1) {
-      console.log('Adding castle at the end');
-      this.castle = new Castle();
-      const castleMesh = this.castle.getMesh();
-      
-      // Adjust castle position relative to last task
-      const castlePosition = new THREE.Vector3(
-        position.x + 4,  // 4 units after last task
-        position.y + 1,  // Slightly higher than last task
-        0.2
-      );
-      castleMesh.position.copy(castlePosition);
-      castleMesh.scale.set(2, 2, 1); // Make castle bigger
-      this.scene.add(castleMesh);
-
-      // Add final path to castle
-      const pathToCastle = new PathConnection(
-        position,
-        new THREE.Vector3(castlePosition.x - 2, castlePosition.y - 1, 0),
-        task.status === 'checked'
-      );
-      const pathMesh = pathToCastle.getMesh();
-      pathMesh.position.z = 0.1;
-      this.scene.add(pathMesh);
-      this.paths.push(pathToCastle);
-    }
+    console.log('=== Task Addition End ===');
   }
 
   public getClickedTaskId(event: MouseEvent): string | null {
@@ -292,9 +351,7 @@ export class RoadmapScene {
     this.tasks.forEach(block => block.animate(Date.now() * 0.001));
 
     // Animate character
-    if ('animate' in this.character) {
-      this.character.animate(Date.now() * 0.001, false, false);
-    }
+    this.character.animate(Date.now() * 0.001, false, false);
 
     // Animate paths
     const time = Date.now() * 0.001;
@@ -305,6 +362,17 @@ export class RoadmapScene {
       this.castle.animate(Date.now() * 0.001);
     }
 
+    // Animate bullseye
+    this.bullseye.animate(Date.now() * 0.001);
+
+    // Add periodic position check for castle
+    if (this.castle) {
+      const castlePos = this.castle.getMesh().getWorldPosition(new THREE.Vector3());
+      if (Math.abs(castlePos.y - 45) > 0.1) {  // If position is significantly different from intended
+        console.log('Castle position drift detected:', castlePos);
+      }
+    }
+
     this.renderer.render(this.scene, this.camera);
   }
 
@@ -313,6 +381,8 @@ export class RoadmapScene {
     const aspect = width / height;
     this.camera.left = -12 * aspect;
     this.camera.right = 12 * aspect;
+    this.camera.top = 20;
+    this.camera.bottom = -20;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(width, height);
   }

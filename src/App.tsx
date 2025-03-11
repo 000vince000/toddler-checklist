@@ -9,6 +9,7 @@ import { TaskProvider } from './context/TaskContext';
 
 // Create a navigation wrapper component
 function NavigationWrapper() {
+  console.log('NavigationWrapper rendering');
   const navigate = useNavigate();
 
   // Memoize the navigation function to prevent unnecessary re-renders
@@ -22,6 +23,7 @@ function NavigationWrapper() {
       <Routes>
         <Route path="/prompt" element={<TaskPrompt />} />
         <Route path="/roadmap" element={<Roadmap />} />
+        <Route path="/test" element={<div>Test Route Works!</div>} />
         <Route path="/" element={<Navigate to="/prompt" replace />} />
       </Routes>
       <TouchControls />

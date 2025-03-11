@@ -6,6 +6,7 @@ export interface Task {
   endTime: string; // HH:mm format
   period: "morning" | "evening";
   spriteSheet: string; // path to sprite sheet
+  status: 'checked' | 'unchecked' | 'pending';
 }
 
 export interface TaskStatus {

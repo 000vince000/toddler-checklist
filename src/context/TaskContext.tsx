@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { NavigateFunction } from 'react-router-dom';
 import tasksConfig from '../config/tasks.json';
 import { Task, TaskStatus } from '../types/Task';
@@ -21,18 +21,29 @@ export function TaskProvider({ children, onNavigate }: TaskProviderProps) {
   const [taskStatuses, setTaskStatuses] = useState<TaskStatus[]>([]);
   const [currentTask, setCurrentTask] = useState<Task | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
+  const previousTaskRef = useRef<Task | null>(null);
 
-  // Add navigation effect
+  // Replace the navigation effect with this one
   useEffect(() => {
-    // Only navigate if we're initialized and have a valid navigation function
-    if (isInitialized && typeof onNavigate === 'function') {
-      console.log('TaskContext: currentTask changed:', currentTask);
-      if (currentTask) {
-        console.log('Navigating to prompt');
-        onNavigate('/prompt');
-      } else {
-        console.log('Navigating to roadmap');
-        onNavigate('/roadmap');
+    if (!isInitialized) return;
+
+    // Only navigate if the task actually changed from a previous value
+    if (currentTask !== previousTaskRef.current) {
+      console.log('TaskContext: actual task change detected:', {
+        from: previousTaskRef.current?.id,
+        to: currentTask?.id
+      });
+      
+      previousTaskRef.current = currentTask;
+
+      if (typeof onNavigate === 'function') {
+        if (currentTask) {
+          console.log('Navigating to prompt');
+          onNavigate('/prompt');
+        } else if (window.location.pathname !== '/roadmap') {  // Only navigate to roadmap if we're not already there
+          console.log('Navigating to roadmap');
+          onNavigate('/roadmap');
+        }
       }
     }
   }, [currentTask, isInitialized, onNavigate]);
@@ -154,7 +165,11 @@ export function TaskProvider({ children, onNavigate }: TaskProviderProps) {
 }
 
 export const useTaskContext = () => {
+  console.log('useTaskContext called');
   const context = useContext(TaskContext);
-  if (!context) throw new Error('useTaskContext must be used within TaskProvider');
+  console.log('TaskContext value:', context);
+  if (!context) {
+    throw new Error('useTaskContext must be used within a TaskProvider');
+  }
   return context;
 }; 
