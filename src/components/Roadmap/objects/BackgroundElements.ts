@@ -5,7 +5,7 @@ export function createMarioBackground() {
 
   // Create mountains
   const mountains = createPixelMountains();
-  mountains.position.z = -5;
+  mountains.position.z = -2;
   background.add(mountains);
 
   // Removed bushes for a cleaner background
@@ -24,7 +24,7 @@ function createPixelMountains() {
   const ctx = canvas.getContext('2d')!;
   
   // Draw pixel art mountain
-  ctx.fillStyle = '#6B8CFF';
+  ctx.fillStyle = '#3F57B4';
   ctx.beginPath();
   ctx.moveTo(0, 32);
   ctx.lineTo(32, 0);
