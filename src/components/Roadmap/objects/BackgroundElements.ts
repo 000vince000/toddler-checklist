@@ -13,11 +13,6 @@ export function createMarioBackground() {
   bushes.position.z = -3;
   background.add(bushes);
 
-  // Create ground blocks
-  const ground = createGroundBlocks();
-  ground.position.z = -1;
-  background.add(ground);
-
   return background;
 }
 
@@ -98,44 +93,4 @@ function createPixelBushes() {
   });
 
   return bushes;
-}
-
-function createGroundBlocks() {
-  const ground = new THREE.Group();
-  
-  // Create ground block texture
-  const canvas = document.createElement('canvas');
-  canvas.width = 16;
-  canvas.height = 16;
-  const ctx = canvas.getContext('2d')!;
-  
-  // Draw pixel art ground block
-  ctx.fillStyle = '#8B4513';
-  ctx.fillRect(0, 0, 16, 16);
-  
-  // Add texture details
-  ctx.fillStyle = '#654321';
-  ctx.fillRect(0, 0, 16, 2);  // Top edge
-  ctx.fillRect(0, 14, 16, 2); // Bottom edge
-  ctx.fillRect(0, 0, 2, 16);  // Left edge
-  ctx.fillRect(14, 0, 2, 16); // Right edge
-
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.magFilter = THREE.NearestFilter;
-  texture.minFilter = THREE.NearestFilter;
-  texture.wrapS = THREE.RepeatWrapping;
-  texture.wrapT = THREE.RepeatWrapping;
-
-  // Create ground plane with repeating texture
-  const groundGeometry = new THREE.PlaneGeometry(40, 2);
-  const groundMaterial = new THREE.MeshBasicMaterial({ 
-    map: texture,
-    transparent: false
-  });
-  groundMaterial.map!.repeat.set(20, 1);
-  
-  const groundMesh = new THREE.Mesh(groundGeometry, groundMaterial);
-  ground.add(groundMesh);
-
-  return ground;
 } 
