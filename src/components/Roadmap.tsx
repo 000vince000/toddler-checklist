@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTaskContext } from '../context/TaskContext';
-import { RoadmapScene } from './roadmap/RoadmapScene';
+import { RoadmapScene } from './Roadmap/RoadmapScene';
 
 export default function Roadmap() {
   const navigate = useNavigate();
