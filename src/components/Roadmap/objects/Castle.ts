@@ -26,6 +26,15 @@ export class Castle {
     mainTower.position.set(0, 1, 0);
     this.mesh.add(mainTower);
 
+    // Add windows to main body
+    this.addWindows(body);
+
+    // Add battlements
+    this.addBattlements();
+
+    // Add moat
+    this.addMoat();
+
     // Door
     const door = this.createDoor();
     door.position.set(0, -0.5, 0.01);
@@ -203,6 +212,130 @@ export class Castle {
     return new THREE.Mesh(geometry, material);
   }
 
+  private addWindows(body: THREE.Mesh) {
+    const windowPositions = [
+      [-1.2, 0.3],
+      [-0.4, 0.3],
+      [0.4, 0.3],
+      [1.2, 0.3]
+    ] as [number, number][];
+
+    windowPositions.forEach(([x, y]) => {
+      const window = this.createWindow();
+      window.position.set(x, y, 0.01);
+      body.add(window);
+      this.windows.push(window);
+    });
+  }
+
+  private createWindow(): THREE.Mesh {
+    const canvas = document.createElement('canvas');
+    canvas.width = 16;
+    canvas.height = 16;
+    const ctx = canvas.getContext('2d')!;
+
+    // Window frame
+    ctx.fillStyle = '#8B4513';
+    ctx.fillRect(0, 0, 16, 16);
+    
+    // Window glass
+    ctx.fillStyle = '#87CEEB';
+    ctx.fillRect(2, 2, 12, 12);
+    
+    // Window cross
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(7, 2, 2, 12);
+    ctx.fillRect(2, 7, 12, 2);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.magFilter = THREE.NearestFilter;
+    texture.minFilter = THREE.NearestFilter;
+
+    const geometry = new THREE.PlaneGeometry(0.4, 0.4);
+    const material = new THREE.MeshBasicMaterial({
+      map: texture,
+      transparent: true
+    });
+    return new THREE.Mesh(geometry, material);
+  }
+
+  private addBattlements() {
+    const battlementPositions = [
+      [-1.8, 1.2], [-1.4, 1.2], [-1.0, 1.2], [-0.6, 1.2], [-0.2, 1.2],
+      [0.2, 1.2], [0.6, 1.2], [1.0, 1.2], [1.4, 1.2], [1.8, 1.2]
+    ] as [number, number][];
+
+    battlementPositions.forEach(([x, y]) => {
+      const battlement = this.createBattlement();
+      battlement.position.set(x, y, 0.01);
+      this.mesh.add(battlement);
+    });
+  }
+
+  private createBattlement(): THREE.Mesh {
+    const canvas = document.createElement('canvas');
+    canvas.width = 8;
+    canvas.height = 8;
+    const ctx = canvas.getContext('2d')!;
+
+    // Battlement shape
+    ctx.fillStyle = '#E0E0E0';
+    ctx.fillRect(0, 0, 8, 8);
+    
+    // Stone pattern
+    ctx.fillStyle = '#CCCCCC';
+    ctx.fillRect(0, 0, 8, 2);
+    ctx.fillRect(0, 6, 8, 2);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.magFilter = THREE.NearestFilter;
+    texture.minFilter = THREE.NearestFilter;
+
+    const geometry = new THREE.PlaneGeometry(0.3, 0.3);
+    const material = new THREE.MeshBasicMaterial({
+      map: texture,
+      transparent: true
+    });
+    return new THREE.Mesh(geometry, material);
+  }
+
+  private addMoat() {
+    const canvas = document.createElement('canvas');
+    canvas.width = 128;
+    canvas.height = 32;
+    const ctx = canvas.getContext('2d')!;
+
+    // Water color
+    ctx.fillStyle = '#4169E1';
+    ctx.fillRect(0, 0, 128, 32);
+    
+    // Water ripples
+    ctx.fillStyle = '#87CEEB';
+    for (let i = 0; i < 8; i++) {
+      ctx.beginPath();
+      ctx.arc(16 * i, 16, 8, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.magFilter = THREE.NearestFilter;
+    texture.minFilter = THREE.NearestFilter;
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.RepeatWrapping;
+
+    const geometry = new THREE.PlaneGeometry(6, 1);
+    const material = new THREE.MeshBasicMaterial({
+      map: texture,
+      transparent: true,
+      opacity: 0.8
+    });
+    material.map!.repeat.set(2, 1);
+
+    const moat = new THREE.Mesh(geometry, material);
+    moat.position.set(0, -1.2, -0.1);
+    this.mesh.add(moat);
+  }
+
   public getMesh(): THREE.Group {
     return this.mesh;
   }
@@ -211,6 +344,13 @@ export class Castle {
     // Animate flags waving
     this.flags.forEach((flag, index) => {
       flag.position.x = 0.3 + Math.sin(time * 3 + index) * 0.05;
+    });
+
+    // Animate windows (subtle glow)
+    this.windows.forEach((window, index) => {
+      const material = window.material as THREE.MeshBasicMaterial;
+      const opacity = 0.7 + Math.sin(time * 2 + index) * 0.3;
+      material.opacity = opacity;
     });
 
     // Add subtle castle movement

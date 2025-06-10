@@ -250,7 +250,8 @@ export class RoadmapScene {
       });
 
       castleMesh.position.copy(castlePosition);
-      this.scene.add(castleMesh);
+      castleMesh.scale.set(2, 2, 2);
+      this.gameObjects.add(castleMesh);
     } else {
       x = Math.sin(progress * Math.PI * 2) * amplitude;
       y = -12 + (index * verticalSpacing);
