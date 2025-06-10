@@ -8,10 +8,8 @@ export function createMarioBackground() {
   mountains.position.z = -5;
   background.add(mountains);
 
-  // Create bushes
-  const bushes = createPixelBushes();
-  bushes.position.z = -3;
-  background.add(bushes);
+  // Removed bushes for a cleaner background
+  // (If needed later, we can add decorative elements elsewhere.)
 
   return background;
 }
@@ -56,41 +54,4 @@ function createPixelMountains() {
   });
 
   return mountains;
-}
-
-function createPixelBushes() {
-  const bushes = new THREE.Group();
-  
-  // Create bush texture
-  const canvas = document.createElement('canvas');
-  canvas.width = 32;
-  canvas.height = 16;
-  const ctx = canvas.getContext('2d')!;
-  
-  // Draw pixel art bush
-  ctx.fillStyle = '#2D5A27';
-  ctx.beginPath();
-  ctx.arc(16, 8, 8, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.beginPath();
-  ctx.arc(8, 8, 6, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.beginPath();
-  ctx.arc(24, 8, 6, 0, Math.PI * 2);
-  ctx.fill();
-
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.magFilter = THREE.NearestFilter;
-  texture.minFilter = THREE.NearestFilter;
-
-  // Create multiple bushes
-  [-15, -5, 5, 15].forEach(x => {
-    const bushMaterial = new THREE.SpriteMaterial({ map: texture });
-    const bush = new THREE.Sprite(bushMaterial);
-    bush.position.set(x, -3, 0);
-    bush.scale.set(2, 1, 1);
-    bushes.add(bush);
-  });
-
-  return bushes;
 } 

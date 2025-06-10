@@ -33,8 +33,7 @@ export class Castle {
     // Add battlements
     this.addBattlements();
 
-    // Add moat
-    this.addMoat();
+    // Removed moat for cleaner appearance
 
     // Door
     const door = this.createDoor();
@@ -298,43 +297,6 @@ export class Castle {
       transparent: true
     });
     return new THREE.Mesh(geometry, material);
-  }
-
-  private addMoat() {
-    const canvas = document.createElement('canvas');
-    canvas.width = 128;
-    canvas.height = 32;
-    const ctx = canvas.getContext('2d')!;
-
-    // Water color
-    ctx.fillStyle = '#4169E1';
-    ctx.fillRect(0, 0, 128, 32);
-    
-    // Water ripples
-    ctx.fillStyle = '#87CEEB';
-    for (let i = 0; i < 8; i++) {
-      ctx.beginPath();
-      ctx.arc(16 * i, 16, 8, 0, Math.PI * 2);
-      ctx.fill();
-    }
-
-    const texture = new THREE.CanvasTexture(canvas);
-    texture.magFilter = THREE.NearestFilter;
-    texture.minFilter = THREE.NearestFilter;
-    texture.wrapS = THREE.RepeatWrapping;
-    texture.wrapT = THREE.RepeatWrapping;
-
-    const geometry = new THREE.PlaneGeometry(6, 1);
-    const material = new THREE.MeshBasicMaterial({
-      map: texture,
-      transparent: true,
-      opacity: 0.8
-    });
-    material.map!.repeat.set(2, 1);
-
-    const moat = new THREE.Mesh(geometry, material);
-    moat.position.set(0, -1.2, -0.1);
-    this.mesh.add(moat);
   }
 
   public getMesh(): THREE.Group {
