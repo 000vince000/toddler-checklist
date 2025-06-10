@@ -4,6 +4,7 @@ export class Castle {
   private mesh: THREE.Group;
   private flags: THREE.Mesh[] = [];
   private windows: THREE.Mesh[] = [];
+  private baseY?: number;
 
   constructor() {
     this.mesh = new THREE.Group();
@@ -353,7 +354,10 @@ export class Castle {
       material.opacity = opacity;
     });
 
-    // Add subtle castle movement
-    this.mesh.position.y = Math.sin(time) * 0.02;
+    // Maintain base Y position while adding subtle bobbing
+    if (this.baseY === undefined) {
+      this.baseY = this.mesh.position.y;
+    }
+    this.mesh.position.y = this.baseY + Math.sin(time) * 0.02;
   }
 } 

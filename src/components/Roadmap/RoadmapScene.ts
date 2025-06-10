@@ -238,16 +238,13 @@ export class RoadmapScene {
       x = 0;
       y = -2 + (index * verticalSpacing);
 
-      // Add castle at the top after last task
+      // Add castle just beyond the last task
       this.castle = new Castle();
       const castleMesh = this.castle.getMesh();
-      const castlePosition = new THREE.Vector3(0, 45, 0.2);
 
-      // Only keep this one critical log
-      console.log('Castle position:', {
-        intended: castlePosition.toArray(),
-        actual: castleMesh.position.toArray()
-      });
+      // Position the castle one step above the last task block
+      const castleOffsetY = verticalSpacing * 2; // distance above the last block (raised further)
+      const castlePosition = new THREE.Vector3(x, y + castleOffsetY, 0.2);
 
       castleMesh.position.copy(castlePosition);
       castleMesh.scale.set(2, 2, 2);
