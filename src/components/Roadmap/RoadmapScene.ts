@@ -192,7 +192,7 @@ export class RoadmapScene {
       
       cloud.position.set(
         Math.random() * 40 - 20,
-        Math.random() * 10,
+        Math.random() * 10 + 10,
         0
       );
       cloud.scale.set(2, 1, 1);
@@ -218,7 +218,7 @@ export class RoadmapScene {
       const mesh = new THREE.Mesh(geometry, material);
       
       mesh.position.z = layer.z;
-      mesh.position.y = -10; // Lowered ground position
+      mesh.position.y = -15;
       mesh.scale.set(layer.scale, layer.scale, 1);
       
       this.background.add(mesh);

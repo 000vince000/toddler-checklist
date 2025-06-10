@@ -135,7 +135,6 @@ function createGroundBlocks() {
   groundMaterial.map!.repeat.set(20, 1);
   
   const groundMesh = new THREE.Mesh(groundGeometry, groundMaterial);
-  groundMesh.position.y = -5;
   ground.add(groundMesh);
 
   return ground;
