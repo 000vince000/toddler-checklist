@@ -227,31 +227,28 @@ export class RoadmapScene {
 
   public addTask(task: Task, index: number, isActive: boolean) {
     const totalTasks = 6;
-    const verticalSpacing = 2;
     const amplitude = 2;
-    
+
+    // Dynamically compute vertical spacing so tasks fill the space between bullseye and castle
+    const bottomY = this.startPosition.y + 2; // first task sits 2 units above bullseye
+    const castleY = 10;                      // fixed castle height, moved down
+    const marginFromCastle = 2;              // keep last task a bit below castle
+    const verticalSpacing = (castleY - marginFromCastle - bottomY) / (totalTasks - 1);
+
     // Calculate positions in a vertical zigzag
     const progress = index / (totalTasks - 1);
     let x, y;
     
-    if (index === totalTasks - 1) {
-      x = 0;
-      y = -2 + (index * verticalSpacing);
+    x = Math.sin(progress * Math.PI * 2) * amplitude;
+    y = bottomY + index * verticalSpacing;
 
-      // Add castle just beyond the last task
+    // After computing position, if this is the last task, place the castle at fixed height
+    if (index === totalTasks - 1) {
       this.castle = new Castle();
       const castleMesh = this.castle.getMesh();
-
-      // Position the castle one step above the last task block
-      const castleOffsetY = verticalSpacing * 2; // distance above the last block (raised further)
-      const castlePosition = new THREE.Vector3(x, y + castleOffsetY, 0.2);
-
-      castleMesh.position.copy(castlePosition);
+      castleMesh.position.set(0, castleY, 0.2);
       castleMesh.scale.set(2, 2, 2);
       this.gameObjects.add(castleMesh);
-    } else {
-      x = Math.sin(progress * Math.PI * 2) * amplitude;
-      y = -12 + (index * verticalSpacing);
     }
     
     const position = new THREE.Vector3(x, y, 0);
