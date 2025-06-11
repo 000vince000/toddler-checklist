@@ -6,6 +6,7 @@ import TaskPrompt from './components/TaskPrompt';
 import Roadmap from './components/Roadmap';
 import TouchControls from './components/common/TouchControls';
 import { TaskProvider } from './context/TaskContext';
+import TestModeWrapper from './components/TestModeWrapper';
 
 // Create a navigation wrapper component
 function NavigationWrapper() {
@@ -20,13 +21,15 @@ function NavigationWrapper() {
 
   return (
     <TaskProvider onNavigate={handleNavigate}>
-      <Routes>
-        <Route path="/prompt" element={<TaskPrompt />} />
-        <Route path="/roadmap" element={<Roadmap />} />
-        <Route path="/test" element={<div>Test Route Works!</div>} />
-        <Route path="/" element={<Navigate to="/prompt" replace />} />
-      </Routes>
-      <TouchControls />
+      <TestModeWrapper>
+        <Routes>
+          <Route path="/prompt" element={<TaskPrompt />} />
+          <Route path="/roadmap" element={<Roadmap />} />
+          <Route path="/test" element={<div>Test Route Works!</div>} />
+          <Route path="/" element={<Navigate to="/prompt" replace />} />
+        </Routes>
+        <TouchControls />
+      </TestModeWrapper>
     </TaskProvider>
   );
 }
