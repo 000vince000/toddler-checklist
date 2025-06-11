@@ -84,7 +84,7 @@ export default function TaskPrompt() {
         variant="h2" 
         sx={{ 
           mb: 12,
-          mt: 36,
+          mt: 24,
           color: '#2c3e50',
           fontWeight: 'bold',
           textAlign: 'center',
@@ -107,8 +107,9 @@ export default function TaskPrompt() {
         width: '100%', 
         display: 'flex', 
         justifyContent: 'center', 
-        alignItems: 'flex-start',
-        mt: -4
+        alignItems: 'center',
+        mt: -12,
+        mb: 20
       }}>
         <PixelAnimation 
           spriteSheet={currentTask.spriteSheet} 
