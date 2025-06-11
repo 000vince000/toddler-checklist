@@ -14,14 +14,18 @@ const TestModeWrapper: React.FC<TestModeWrapperProps> = ({ children }) => {
     setTestMode, 
     simulatedTime, 
     setSimulatedTime,
-    triggerTask 
+    triggerTask,
+    taskStatuses
   } = useTaskContext();
 
-  const tasksWithStatus: Task[] = tasksConfig.tasks.map(task => ({
-    ...task,
-    status: 'pending',
-    period: task.period as 'morning' | 'evening'
-  }));
+  const tasksWithStatus: Task[] = tasksConfig.tasks.map(task => {
+    const statusEntry = taskStatuses.find(s => s.id === task.id);
+    return {
+      ...task,
+      status: statusEntry?.status || 'pending',
+      period: task.period as 'morning' | 'evening'
+    };
+  });
 
   return (
     <>

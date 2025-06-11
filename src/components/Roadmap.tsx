@@ -70,7 +70,8 @@ export default function Roadmap() {
     // Check if all tasks are pending
     const allPending = taskStatuses.every(task => task.status === 'pending');
     if (allPending) {
-      console.log('Roadmap: All tasks are pending, resetting character position');
+      console.log('Roadmap: All tasks are pending, resetting scene');
+      sceneRef.current.resetAllTasks();
       return;
     }
 

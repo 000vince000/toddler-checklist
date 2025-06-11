@@ -59,7 +59,7 @@ const TestControlPanel: React.FC<TestControlPanelProps> = ({
             onClick={() => onTaskTrigger(task.id)}
             sx={{ justifyContent: 'flex-start' }}
           >
-            {task.name} ({task.startTime}-{task.endTime})
+            {task.name} [{task.status}] ({task.startTime}-{task.endTime})
           </Button>
         ))}
       </Box>

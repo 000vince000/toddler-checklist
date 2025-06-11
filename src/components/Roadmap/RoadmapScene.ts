@@ -341,14 +341,22 @@ export class RoadmapScene {
     }
   }
 
-  private resetCharacterPosition() {
+  public resetCharacterPosition() {
     console.log('RoadmapScene: resetting character position to start');
     const startPos = this.startPosition.clone();
-    startPos.y += 3; // Match the initial offset from constructor
+    startPos.y += 3; // Match the offset in constructor
+    startPos.z = 5; // Ensure character is in front
     this.animateCharacterMovement(startPos);
   }
 
-  private animateCharacterMovement(targetPosition: THREE.Vector3) {
+  public resetAllTasks() {
+    console.log('RoadmapScene: resetAllTasks called');
+    this.tasks.forEach(task => task.setStatus('unchecked'));
+    // Optionally reset path visuals here (omitted for brevity)
+    this.resetCharacterPosition();
+  }
+
+  public animateCharacterMovement(targetPosition: THREE.Vector3) {
     console.log('RoadmapScene: animating character movement', {
       from: this.character.position.toArray(),
       to: targetPosition.toArray()
@@ -438,5 +446,12 @@ export class RoadmapScene {
 
   public dispose() {
     this.renderer.dispose();
+  }
+
+  public getInitialCharacterPosition(): THREE.Vector3 {
+    const pos = this.startPosition.clone();
+    pos.y += 3; // Match the offset in constructor
+    pos.z = 5;  // Match the z position in constructor
+    return pos;
   }
 } 
