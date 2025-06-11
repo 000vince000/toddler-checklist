@@ -9,7 +9,7 @@ interface CoinBlockOptions {
 export class CoinBlock {
   private mesh: THREE.Group;
   private block: THREE.Mesh;
-  private questionMark: THREE.Sprite;
+  private questionMark?: THREE.Sprite;
   private isAnimating: boolean = false;
   private originalY: number;
   private isCompleted: boolean;
@@ -153,5 +153,27 @@ export class CoinBlock {
 
   public getMesh(): THREE.Group {
     return this.mesh;
+  }
+
+  public setStatus(status: 'checked' | 'unchecked') {
+    this.isCompleted = status === 'checked';
+    // Update block color
+    const material = this.block.material as THREE.MeshPhongMaterial;
+    material.color.setHex(this.isCompleted ? 0x4CAF50 : 0xE0E0E0);
+    
+    // Update texture
+    const newTexture = this.createBlockTexture();
+    material.map = newTexture;
+    material.needsUpdate = true;
+
+    // Remove question mark if completed
+    if (this.isCompleted && this.questionMark) {
+      this.mesh.remove(this.questionMark);
+      this.questionMark = undefined;
+    }
+  }
+
+  public getStatus(): 'checked' | 'unchecked' {
+    return this.isCompleted ? 'checked' : 'unchecked';
   }
 } 

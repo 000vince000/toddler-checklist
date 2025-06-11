@@ -242,6 +242,24 @@ export class RoadmapScene {
     x = Math.sin(progress * Math.PI * 2) * amplitude;
     y = bottomY + index * verticalSpacing;
 
+    console.log('RoadmapScene: adding task', {
+      taskId: task.id,
+      index,
+      position: { x, y },
+      isActive
+    });
+
+    // Create and position the task
+    const coinBlock = new CoinBlock({
+      isCompleted: task.status === 'checked',
+      isActive
+    });
+    const mesh = coinBlock.getMesh();
+    mesh.position.set(x, y, 0);
+    this.gameObjects.add(mesh);
+    this.tasks.set(task.id, coinBlock);
+    this.taskPositions.set(task.id, new THREE.Vector3(x, y, 0));
+
     // After computing position, if this is the last task, place the castle at fixed height
     if (index === totalTasks - 1) {
       this.castle = new Castle();
@@ -250,63 +268,20 @@ export class RoadmapScene {
       castleMesh.scale.set(2, 2, 2);
       this.gameObjects.add(castleMesh);
     }
-    
-    const position = new THREE.Vector3(x, y, 0);
-    console.log('Task position:', position.toArray());
 
-    // Create coin block
-    const block = new CoinBlock({
-      isCompleted: task.status === 'checked',
-      isActive,
-      onComplete: () => {
-        console.log('Task completed:', task.id);
-      }
-    });
-
-    // Position the block
-    const blockMesh = block.getMesh();
-    blockMesh.position.copy(position);
-    blockMesh.scale.set(1.5, 1.5, 1); // Make blocks bigger
-    this.scene.add(blockMesh);
-
-    // Store references
-    this.tasks.set(task.id, block);
-    this.taskPositions.set(task.id, position);
-
-    // If this is the active task, position character here
-    if (isActive) {
-      this.character.position.copy(position);
-      this.character.position.y += 3; // Adjusted for 4x bigger character
-      this.character.position.z = 5; // Ensure character stays in front
-    }
-
-    // If this is the first task, add path from bullseye
-    if (index === 0) {
-      const pathFromStart = new PathConnection(
-        this.startPosition,
-        position,
-        task.status === 'checked'
-      );
-      const pathMesh = pathFromStart.getMesh();
-      pathMesh.position.z = 0.1;
-      this.scene.add(pathMesh);
-      this.paths.push(pathFromStart);
-    }
-
-    // Add path connection to previous task
+    // Create path to previous task
     if (index > 0) {
-      const prevTaskId = Array.from(this.taskPositions.keys())[index - 1];
-      const prevPosition = this.taskPositions.get(prevTaskId)!;
-      const isCompleted = task.status === 'checked';
-      
-      const path = new PathConnection(prevPosition, position, isCompleted);
-      const pathMesh = path.getMesh();
-      pathMesh.position.z = 0.1;
-      this.scene.add(pathMesh);
-      this.paths.push(path);
+      const prevTask = Array.from(this.tasks.entries())[index - 1];
+      if (prevTask) {
+        const path = new PathConnection(
+          this.taskPositions.get(prevTask[0])!,
+          new THREE.Vector3(x, y, 0),
+          prevTask[1].getStatus() === 'checked'
+        );
+        this.paths.push(path);
+        this.gameObjects.add(path.getMesh());
+      }
     }
-
-    console.log('=== Task Addition End ===');
   }
 
   public getClickedTaskId(event: MouseEvent): string | null {
@@ -329,47 +304,126 @@ export class RoadmapScene {
     return null;
   }
 
-  private animate = () => {
-    requestAnimationFrame(this.animate);
-    
-    const delta = this.clock.getDelta();
-    
-    // Animate clouds
-    this.clouds.children.forEach(cloud => {
-      cloud.position.x += cloud.userData.speed * delta;
-      if (cloud.position.x > 20) {
-        cloud.position.x = -20;
-      }
-    });
-
-    // Animate blocks
-    this.tasks.forEach(block => block.animate(Date.now() * 0.001));
-
-    // Animate character
-    this.character.animate(Date.now() * 0.001, false, false);
-
-    // Animate paths
-    const time = Date.now() * 0.001;
-    this.paths.forEach(path => path.animate(time));
-
-    // Animate castle
-    if (this.castle) {
-      this.castle.animate(Date.now() * 0.001);
+  public updateTaskStatus(taskId: string, status: 'checked' | 'unchecked') {
+    console.log('RoadmapScene: updateTaskStatus called', { taskId, status });
+    const task = this.tasks.get(taskId);
+    if (!task) {
+      console.log('RoadmapScene: task not found', { taskId });
+      return;
     }
 
-    // Animate bullseye
-    this.bullseye.animate(Date.now() * 0.001);
+    // Update task status
+    task.setStatus(status);
+    console.log('RoadmapScene: task status updated');
 
-    // Add periodic position check for castle
-    if (this.castle) {
-      const castlePos = this.castle.getMesh().getWorldPosition(new THREE.Vector3());
-      if (Math.abs(castlePos.y - 45) > 0.1) {  // If position is significantly different from intended
-        console.log('Castle position drift detected:', castlePos);
+    // Find the next unchecked task
+    const taskArray = Array.from(this.tasks.entries());
+    const nextTask = taskArray.find(([_, task]) => task.getStatus() === 'unchecked');
+    console.log('RoadmapScene: next task found', { nextTaskId: nextTask?.[0] });
+
+    if (nextTask) {
+      // Get the position of the next task
+      const nextPosition = this.taskPositions.get(nextTask[0]);
+      console.log('RoadmapScene: next task position', nextPosition);
+      if (nextPosition) {
+        // Animate character movement
+        this.animateCharacterMovement(nextPosition);
       }
+    } else if (status === 'checked' && this.castle) {
+      // If all tasks are completed, move to castle
+      const castlePosition = this.castle.getMesh().position.clone();
+      castlePosition.y -= 2; // Adjust to stand in front of castle
+      console.log('RoadmapScene: moving to castle', castlePosition);
+      this.animateCharacterMovement(castlePosition);
+    } else {
+      // If no unchecked tasks found and not all completed, reset to start
+      this.resetCharacterPosition();
+    }
+  }
+
+  private resetCharacterPosition() {
+    console.log('RoadmapScene: resetting character position to start');
+    const startPos = this.startPosition.clone();
+    startPos.y += 3; // Match the initial offset from constructor
+    this.animateCharacterMovement(startPos);
+  }
+
+  private animateCharacterMovement(targetPosition: THREE.Vector3) {
+    console.log('RoadmapScene: animating character movement', {
+      from: this.character.position.toArray(),
+      to: targetPosition.toArray()
+    });
+    const startPosition = this.character.position.clone();
+    const distance = startPosition.distanceTo(targetPosition);
+    const duration = 1.0; // seconds
+    const startTime = this.clock.getElapsedTime();
+    
+    // Store animation data
+    this.character.userData.animation = {
+      startPosition,
+      targetPosition,
+      startTime,
+      duration,
+      isMoving: true
+    };
+  }
+
+  private updateCharacterAnimation() {
+    const animation = this.character.userData.animation;
+    if (!animation || !animation.isMoving) return;
+
+    const currentTime = this.clock.getElapsedTime();
+    const elapsed = currentTime - animation.startTime;
+    const progress = Math.min(elapsed / animation.duration, 1);
+
+    if (progress < 1) {
+      // Update position
+      this.character.position.lerpVectors(
+        animation.startPosition,
+        animation.targetPosition,
+        progress
+      );
+
+      // Update character animation state
+      const walking = true;
+      const jumping = progress < 0.5; // Jump in first half of movement
+      this.character.animate(currentTime, walking, jumping);
+    } else {
+      // Animation complete
+      this.character.position.copy(animation.targetPosition);
+      this.character.animate(currentTime, false, false);
+      animation.isMoving = false;
+      console.log('RoadmapScene: character movement complete', {
+        finalPosition: this.character.position.toArray()
+      });
+    }
+  }
+
+  private animate = () => {
+    requestAnimationFrame(this.animate);
+
+    const time = this.clock.getElapsedTime();
+
+    // Update clouds
+    this.clouds.children.forEach(cloud => {
+      const speed = cloud.userData.speed || 0.5;
+      const initialX = cloud.userData.initialX || 0;
+      cloud.position.x = initialX + Math.sin(time * speed) * 2;
+    });
+
+    // Update character animation
+    this.updateCharacterAnimation();
+
+    // Update paths
+    this.paths.forEach(path => path.animate(time));
+
+    // Update castle if it exists
+    if (this.castle) {
+      this.castle.animate(time);
     }
 
     this.renderer.render(this.scene, this.camera);
-  }
+  };
 
   // Public methods for scene management
   public resize(width: number, height: number) {
